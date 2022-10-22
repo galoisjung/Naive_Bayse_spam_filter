@@ -66,7 +66,7 @@ def dfs(email_cont, stack=[]):
     return result
 
 
-def spam_extraction():
+def spam_extraction(connection):
     mail = IMAP4_SSL("imap.naver.com")
     mail.login(config['NAVER_ID'], config['NAVER_PASSWORD'])
     mail.select("Junk")
@@ -82,10 +82,10 @@ def spam_extraction():
         email_message = email.message_from_bytes(raw_email)
 
         email_obj = contents_extract(email_message)
-        Dao_email.spam_add(email_obj)
+        Dao_email.add(email_obj, connection, True)
 
 
-def ham_extraction():
+def ham_extraction(connection):
     mail = IMAP4_SSL("imap.naver.com", port=993)
     mail.login(config['NAVER_ID'], config['NAVER_PASSWORD'])
     mail.select("INBOX")
@@ -101,12 +101,12 @@ def ham_extraction():
         email_message = email.message_from_bytes(raw_email)
 
         email_obj = contents_extract(email_message)
-        Dao_email.ham_add(email_obj)
+        Dao_email.add(email_obj, connection, False)
 
 
-def making_doclist(per):
-    hamzip = Dao_email.ham_get()
-    spamzip = Dao_email.spam_get()
+def making_doclist(per, connection):
+    hamzip = Dao_email.ham_get(connection)
+    spamzip = Dao_email.spam_get(connection)
 
     hamlist = [i for i in hamzip]
     spamlist = [i for i in spamzip]

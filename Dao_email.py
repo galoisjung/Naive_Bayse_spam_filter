@@ -1,76 +1,94 @@
 import json
 
 import pymysql
+import sqlite3
 
 with open('conf.json') as f:
     config = json.load(f)
 
 
-def connection_sql():
-    conn = pymysql.connect(host='localhost', user=config["SQL_ID"], passwd=config["SQL_PASSWORD"], db=config["DB"])
+class connection_mysql:
+    def __init__(self, spam=False):
+        self.conn = pymysql.connect(host='localhost', user=config["SQL_ID"], passwd=config["SQL_PASSWORD"],
+                                    db=config["DB"])
+
+        if not spam:
+            self.query_1 = '''
+            CREATE TABLE IF NOT EXISTS ham(
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            `from` LONGTEXT,
+            `to` LONGTEXT,
+            date VARCHAR(255),
+            subject LONGTEXT NOT NULL,
+            content LONGTEXT)
+            '''
+            self.query_2 = "INSERT INTO ham(`from`,`to`, date, subject, content) VALUES(%s,%s,%s,%s,%s)"
+        else:
+            self.query_1 = '''
+            CREATE TABLE IF NOT EXISTS spam(
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            `from` LONGTEXT,
+            `to` LONGTEXT,
+            date VARCHAR(255),
+            subject LONGTEXT NOT NULL,
+            content LONGTEXT)
+            '''
+            self.query_2 = "INSERT INTO spam(`from`,`to`, date, subject, content) VALUES(%s,%s,%s,%s,%s)"
+
+
+class connection_sqlite:
+    def __init__(self, spam=False):
+        self.conn = sqlite3.connect("email.db")
+
+        if not spam:
+            self.query_1 = '''
+            CREATE TABLE IF NOT EXISTS ham(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            `from` LONGTEXT,
+            `to` LONGTEXT,
+            date VARCHAR(255),
+            subject LONGTEXT NOT NULL,
+            content LONGTEXT)
+            '''
+            self.query_2 = "INSERT INTO ham(`from`,`to`, date, subject, content) VALUES(?,?,?,?,?)"
+        else:
+            self.query_1 = '''
+            CREATE TABLE IF NOT EXISTS spam(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            `from` LONGTEXT,
+            `to` LONGTEXT,
+            date VARCHAR(255),
+            subject LONGTEXT NOT NULL,
+            content LONGTEXT)
+            '''
+            self.query_2 = "INSERT INTO spam(`from`,`to`, date, subject, content) VALUES(?,?,?,?,?)"
+
+
+def add(email, conection, spam=False):
+    con_instance = conection(spam)
+
+    conn = con_instance.conn
     curs = conn.cursor()
 
-    return conn, curs
-
-
-def ham_add(email):
-    conn, curs = connection_sql()
     fm = email['From']
     to = email['To']
     date = email['Date']
     subject = email['Subject']
     content = email['Content']
-    query = '''
-    CREATE TABLE IF NOT EXISTS ham(
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    `from` LONGTEXT,
-    `to` LONGTEXT,
-    date VARCHAR(255),
-    subject LONGTEXT NOT NULL,
-    content LONGTEXT)
-    '''
 
-    curs.execute(query)
+    curs.execute(con_instance.query_1)
     conn.commit()
 
-    query = "INSERT INTO ham(`from`,`to`, date, subject, content) VALUES(%s,%s,%s,%s,%s)"
-
-    curs.execute(query, (fm, to, date, subject, content))
+    curs.execute(con_instance.query_2, (fm, to, date, subject, content,))
     conn.commit()
 
     conn.close()
 
 
-def spam_add(email):
-    conn, curs = connection_sql()
-    fm = email['From']
-    to = email['To']
-    date = email['Date']
-    subject = email['Subject']
-    content = email['Content']
-    query = '''
-    CREATE TABLE IF NOT EXISTS spam(
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    `from` LONGTEXT,
-    `to` LONGTEXT,
-    date VARCHAR(255),
-    subject LONGTEXT NOT NULL,
-    content LONGTEXT)
-    '''
-
-    curs.execute(query)
-    conn.commit()
-
-    query = "INSERT INTO spam(`from`,`to`, date, subject, content) VALUES(%s,%s,%s,%s,%s)"
-
-    curs.execute(query, (fm, to, date, subject, content))
-    conn.commit()
-
-    conn.close()
-
-
-def ham_get():
-    conn, curs = connection_sql()
+def ham_get(connection):
+    con_instance = connection()
+    conn = con_instance.conn
+    curs = conn.cursor()
 
     query = "SELECT subject FROM ham"
 
@@ -88,8 +106,10 @@ def ham_get():
     return result
 
 
-def spam_get():
-    conn, curs = connection_sql()
+def spam_get(connection):
+    con_instance = connection()
+    conn = con_instance.conn
+    curs = conn.cursor()
 
     query = "SELECT subject FROM spam"
 

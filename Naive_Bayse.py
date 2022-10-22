@@ -135,8 +135,9 @@ def testing(C, V, Prior, CondProb, d, method):
 
         for i, _ in enumerate(C):
             score[i] = log(Prior[i])
-            for t in W:
-                score[i] += log(CondProb[i][t])
+            for k in W:
+                score[i] += log(CondProb[i][k])
+    print(score)
 
     return score
 
