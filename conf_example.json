@@ -1,0 +1,10 @@
+/*사용전에 이름을 conf.json으로 바꿔주세요!*/
+{
+  "GMAIL_ID": "{아이디@gmail.com}",
+  "GMAIL_PASSWORD": "{앱 비밀번호 입니다! 아이디 비밀번호 아님 }", /* https://support.bespinglobal.com/ko/support/solutions/articles/73000545275--gmail-%EC%95%B1-%EB%B9%84%EB%B0%80%EB%B2%88%ED%98%B8-%EC%83%9D%EC%84%B1%EB%B0%A9%EB%B2%95 */
+  "NAVER_ID": "{네이버 아이디}",
+  "NAVER_PASSWORD": "{네이버 비밀번호}",
+  "SQL_ID": "{SQL 아이디}",
+  "SQL_PASSWORD": "{SQL 비밀번호}",
+  "DB": "{Ham, Spam 테이블을 저장할 DB 이름(이미 존재해야 함!)}"
+}
