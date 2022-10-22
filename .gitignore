@@ -1,6 +1,7 @@
 # Project exclude paths
-/venv/
+venv
 conf.json
+.gitignore
 *.xml
 *.iml
 *.db
