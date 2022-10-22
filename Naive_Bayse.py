@@ -174,17 +174,22 @@ def compare_result(predict, acutal):
     for i in range(len(predict)):
         if predict[i] == acutal[i]:
             true_count += 1
-        elif predict[i] == True & acutal[i] == False:
+        elif predict[i] and not acutal[i]:
             false_positive += 1
-        elif predict[i] == True & acutal[i] == False:
+        elif predict[i] and not acutal[i]:
             false_negative += 1
 
         count += 1
     precision = true_count / count
-    accuracy = true_count / true_count + false_positive
-    recall = true_count / true_count + false_negative
+    accuracy = true_count / (true_count + false_positive)
+    recall = true_count / (true_count + false_negative)
 
-    print("accuracy:" + str(precision))
-    print("precision:" + str(accuracy))
+    print(true_count)
+    print(false_negative)
+    print(false_positive)
+    print(count)
+
+    print("accuracy:" + str(accuracy))
+    print("precision:" + str(precision))
     print("Recall:" + str(recall))
     print("F1-score" + str(2 * 1 / ((1 / precision) + (1 / recall))))
