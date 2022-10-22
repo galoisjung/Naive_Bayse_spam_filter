@@ -137,8 +137,6 @@ def testing(C, V, Prior, CondProb, d, method):
             score[i] = log(Prior[i])
             for k in W:
                 score[i] += log(CondProb[i][k])
-    print(score)
-
     return score
 
 
@@ -184,13 +182,11 @@ def compare_result(predict, acutal):
     precision = true_count / count
     accuracy = true_count / (true_count + false_positive)
     recall = true_count / (true_count + false_negative)
+    f1 = 2 / ((1 / precision) + (1 / recall))
 
-    print(true_count)
-    print(false_negative)
-    print(false_positive)
-    print(count)
-
-    print("accuracy:" + str(accuracy))
     print("precision:" + str(precision))
+    print("accuracy:" + str(accuracy))
     print("Recall:" + str(recall))
-    print("F1-score" + str(2 * 1 / ((1 / precision) + (1 / recall))))
+    print("F1-score" + str(f1))
+
+    return (precision, accuracy, recall, f1)
