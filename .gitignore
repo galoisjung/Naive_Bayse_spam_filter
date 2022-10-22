@@ -1,0 +1,5 @@
+# Project exclude paths
+/venv/
+conf.json
+*.xml
+*.iml
