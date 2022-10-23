@@ -35,3 +35,7 @@ def make_average(cnt, method):
     print("Recall:" + str(result[2]))
     print("F1-score:" + str(result[3]))
     return result
+
+make_average(10, Naive_Bayse.split)
+make_average(10, Naive_Bayse.morphs)
+make_average(10, Naive_Bayse.noun)
