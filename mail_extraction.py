@@ -1,4 +1,5 @@
 import random
+import re
 from imaplib import IMAP4_SSL
 import email
 import Dao_email
@@ -18,8 +19,18 @@ def findEncodingInfo(txt):
 def contents_extract(email):
     result = dict()
 
-    result['From'] = email['From']
-    result['To'] = email['To']
+    email_from = re.search("<(.+)[>]", str(email['From']))
+    if email_from != None:
+        result['From'] = email_from.group(1)
+    else:
+        result['From'] = email['From']
+
+    email_to = re.search("<(.+)[>]", str(email['To']))
+    if email_to != None:
+        result['To'] = email_to.group(1)
+    else:
+        result['To'] = email['To']
+
     result['Date'] = email['Date']
 
     if email['Subject'] is not None:
@@ -46,7 +57,6 @@ def dfs(email_cont, stack=[]):
     result = str()
     stack.append(email_cont)
     while len(stack) > 0:
-        print(len(stack))
         email_cont = stack.pop()
         if email_cont.is_multipart():
             stack.extend(email_cont.get_payload())
@@ -77,7 +87,7 @@ def spam_extraction(connection):
 
     all_email = data[0].split()
 
-    conn_instance = connection()
+    con_instance = connection(True)
 
     for i in all_email:
         print(i)
@@ -86,7 +96,9 @@ def spam_extraction(connection):
         email_message = email.message_from_bytes(raw_email)
 
         email_obj = contents_extract(email_message)
-        Dao_email.add(email_obj, conn_instance, True)
+        Dao_email.add(email_obj, con_instance)
+
+    con_instance.conn.close()
 
 
 def ham_extraction(connection):
@@ -98,7 +110,7 @@ def ham_extraction(connection):
 
     all_email = data[0].split()
 
-    conn_instance = connection()
+    con_instance = connection(False)
 
     for i in all_email:
         print(i)
@@ -107,7 +119,9 @@ def ham_extraction(connection):
         email_message = email.message_from_bytes(raw_email)
 
         email_obj = contents_extract(email_message)
-        Dao_email.add(email_obj, conn_instance, False)
+        Dao_email.add(email_obj, con_instance)
+
+    con_instance.conn.close()
 
 
 def making_doclist(per, connection):

@@ -1,4 +1,5 @@
 import json
+import re
 from imaplib import IMAP4_SSL
 import email
 import Dao_email
@@ -17,8 +18,18 @@ def findEncodingInfo(txt):
 def contents_extract(email):
     result = dict()
 
-    result['From'] = email['From']
-    result['To'] = email['To']
+    email_from = re.search("<(.+)[>]", str(email['From']))
+    if email_from != None:
+        result['From'] = email_from.group(1)
+    else:
+        result['From'] = email['From']
+
+    email_to = re.search("<(.+)[>]", str(email['To']))
+    if email_to != None:
+        result['To'] = email_to.group(1)
+    else:
+        result['To'] = email['To']
+
     result['Date'] = email['Date']
 
     if email['Subject'] is not None:
@@ -85,8 +96,8 @@ def spam_extraction(connection):
 
         email_obj = contents_extract(email_message)
         Dao_email.add(email_obj, con_instance)
-
     con_instance.conn.close()
+
 
 def ham_extraction(connection):
     mail = IMAP4_SSL("imap.naver.com", port=993)
@@ -107,11 +118,10 @@ def ham_extraction(connection):
 
         email_obj = contents_extract(email_message)
         Dao_email.add(email_obj, con_instance)
-
     con_instance.conn.close()
 
-def making_doclist(per, connection):
 
+def making_doclist(per, connection):
     hamzip = Dao_email.ham_get(connection)
     spamzip = Dao_email.spam_get(connection)
 
@@ -127,9 +137,8 @@ def making_doclist(per, connection):
     ham_rand = np.random.rand(ham_arr.shape[0])
     spam_rand = np.random.rand(spam_arr.shape[0])
 
-    ham_split = ham_rand < np.percentile(ham_rand, per*100)
-    spam_split = spam_rand < np.percentile(spam_rand, per*100)
-
+    ham_split = ham_rand < np.percentile(ham_rand, per * 100)
+    spam_split = spam_rand < np.percentile(spam_rand, per * 100)
 
     ham_train = ham_arr[ham_split]
     spam_train = spam_arr[spam_split]

@@ -95,11 +95,20 @@ class noun:
             self.storedic = dict()
 
     def split(self, doc):
-        hash_doc = hashing(doc)
         result = []
+        doc = re.sub("(?:\s)+", " ", doc)
+        emoji_pattern = re.compile("["
+                                   u"\U0001F600-\U0001F64F"  # emoticons
+                                   u"\U0001F300-\U0001F5FF"  # symbols & pictographs
+                                   u"\U0001F680-\U0001F6FF"  # transport & map symbols
+                                   u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
+                                   u"\U0001F914"
+                                   u"\U0001F9B8"
+                                   "]+", flags=re.UNICODE)
+        doc = emoji_pattern.sub("", doc)
+        hash_doc = hashing(doc)
         for sentence in sent_tokenize(doc):
             sentence = sentence.strip()
-            print(sentence)
             if len(sentence) > 1:
                 try:
                     if hash_doc in self.storedic:
