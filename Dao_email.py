@@ -64,7 +64,7 @@ class connection_sqlite:
             self.query_2 = "INSERT INTO spam(`from`,`to`, date, subject, content) VALUES(?,?,?,?,?)"
 
 
-def add(email, con_instance, spam=False):
+def add(email, con_instance):
 
     conn = con_instance.conn
     curs = conn.cursor()

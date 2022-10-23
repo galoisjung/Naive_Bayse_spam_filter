@@ -75,7 +75,7 @@ def spam_extraction(connection):
 
     all_email = data[0].split()
 
-    con_instance = connection()
+    con_instance = connection(True)
 
     for i in all_email:
         print(i)
@@ -84,8 +84,9 @@ def spam_extraction(connection):
         email_message = email.message_from_bytes(raw_email)
 
         email_obj = contents_extract(email_message)
-        Dao_email.add(email_obj, con_instance, True)
+        Dao_email.add(email_obj, con_instance)
 
+    con_instance.conn.close()
 
 def ham_extraction(connection):
     mail = IMAP4_SSL("imap.naver.com", port=993)
@@ -96,7 +97,7 @@ def ham_extraction(connection):
 
     all_email = data[0].split()
 
-    con_instance = connection()
+    con_instance = connection(False)
 
     for i in all_email:
         print(i)
@@ -105,8 +106,9 @@ def ham_extraction(connection):
         email_message = email.message_from_bytes(raw_email)
 
         email_obj = contents_extract(email_message)
-        Dao_email.add(email_obj, con_instance, False)
+        Dao_email.add(email_obj, con_instance)
 
+    con_instance.conn.close()
 
 def making_doclist(per, connection):
 

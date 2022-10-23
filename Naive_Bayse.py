@@ -81,7 +81,7 @@ class morphs:
                     json.dump(self.storedic, f)
         except UnicodeDecodeError:
             print("error")
-            result = []
+            result = [""]
         return result
 
 
@@ -111,7 +111,7 @@ class noun:
                             json.dump(self.storedic, f)
                 except UnicodeDecodeError:
                     print("error")
-                    result = []
+                    result = [""]
         return result
 
 
