@@ -33,5 +33,5 @@ def make_average(cnt, method):
     print("precision:" + str(result[0]))
     print("accuracy:" + str(result[1]))
     print("Recall:" + str(result[2]))
-    print("F1-score" + str(result[3]))
+    print("F1-score:" + str(result[3]))
     return result
