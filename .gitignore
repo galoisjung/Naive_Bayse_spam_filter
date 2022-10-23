@@ -5,3 +5,4 @@ conf.json
 *.xml
 *.iml
 *.db
+morphs.json

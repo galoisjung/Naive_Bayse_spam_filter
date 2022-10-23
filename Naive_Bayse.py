@@ -1,3 +1,5 @@
+import json
+import os.path
 import re
 from os import listdir
 from struct import pack, unpack
@@ -10,6 +12,12 @@ import mail_extraction
 import naver_extraction
 import Dao_email
 from math import log
+import hashlib
+
+
+def hashing(input):
+    result = int.from_bytes(hashlib.sha256(input.encode()).digest()[:4], 'little')
+    return result
 
 
 class split:
@@ -46,6 +54,11 @@ class bigram_sound:
 class morphs:
     def __init__(self):
         self.ma = Komoran()
+        if os.path.isfile("morphs.json"):
+            with open("morphs.json", "r") as fp:
+                self.storedic = json.load(fp)
+        else:
+            self.storedic = dict()
 
     def split(self, doc):
         print(doc)
@@ -60,7 +73,13 @@ class morphs:
                                    "]+", flags=re.UNICODE)
         doc = emoji_pattern.sub("", doc)
         try:
-            result = self.ma.morphs(doc)
+            if str(hashing(doc)) in self.storedic:
+                result = self.storedic[str(hashing(doc))]
+            else:
+                with open("morphs.json", "w") as f:
+                    result = self.ma.morphs(doc)
+                    self.storedic[hashing(doc)] = result
+                    json.dump(self.storedic, f)
         except UnicodeDecodeError:
             print("error")
             result = []
@@ -96,8 +115,9 @@ def format_maker(mail, label):
 def training(C, D, method):
     V = list()
     li = making_list_value(D)
+    instance = method()
     for row in li:
-        for term in method().split(row):
+        for term in instance.split(row):
             V.append(term)
     V = list(set(V))
     N = len(D)
@@ -117,8 +137,11 @@ def training(C, D, method):
         Tct = dict()
         CondProb = dict()
 
+        count = 0
+        li = [w for w in instance.split(Tc)]
         for t in V:
-            Tct[t] = len([w for w in method().split(Tc) if w == t])
+            count += 1
+            Tct[t] = li.count(t)
         for t in V:
             CondProb[t] = (Tct.get(t, 0) + 1) / (sum(Tct.values()) + len(Tct))
 
@@ -130,7 +153,8 @@ def training(C, D, method):
 def testing(C, V, Prior, CondProb, d, method):
     W = list()
     score = list([0] * len(C))
-    for t in method().split(d):
+    instance = method
+    for t in instance.split(d):
         if t in V:
             W.append(t)
         for i, _ in enumerate(C):
@@ -151,12 +175,13 @@ def making_list_value(b):
 def testing_all(q, w, e, b, method):
     result = list()
 
+    instance = method()
     d = making_list_value(b)
     target = [i[1] for i in b]
 
     for i, j in enumerate(d):
         if len(j.split()) != 0:
-            output = testing(["True", "False"], q, w, e, j, method)
+            output = testing(["True", "False"], q, w, e, j, instance)
             if output[0] > output[1]:
                 result.append(True)
             else:
@@ -175,7 +200,7 @@ def compare_result(predict, acutal):
             true_count += 1
         elif predict[i] and not acutal[i]:
             false_positive += 1
-        elif predict[i] and not acutal[i]:
+        elif not predict[i] and acutal[i]:
             false_negative += 1
 
         count += 1
