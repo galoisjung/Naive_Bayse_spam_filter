@@ -97,6 +97,8 @@ def ham_get(connection):
 
     result = curs.fetchall()
 
+    result = [i[0] for i in result]
+
     label = [True] * len(result)
 
     result = zip(result, label)
@@ -117,6 +119,8 @@ def spam_get(connection):
     conn.commit()
 
     result = curs.fetchall()
+
+    result = [i[0] for i in result]
 
     label = [False] * len(result)
 

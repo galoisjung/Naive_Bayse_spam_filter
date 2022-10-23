@@ -10,7 +10,7 @@ from Naive_Bayse import noun
 def get_result(method):
     train_set, test_set = mail_extraction.making_doclist(0.8, Dao_email.connection_sqlite)
 
-    q, w, e = Naive_Bayse.training([True, False], train_set, method)
+    q, w, e = Naive_Bayse.training(["True", "False"], train_set, method)
 
     print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 

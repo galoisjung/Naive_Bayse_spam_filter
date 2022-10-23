@@ -3,6 +3,7 @@ from imaplib import IMAP4_SSL
 import email
 import Dao_email
 import json
+import numpy as np
 
 with open('conf.json') as f:
     config = json.load(f)
@@ -106,22 +107,35 @@ def ham_extraction(connection):
 
 
 def making_doclist(per, connection):
+
     hamzip = Dao_email.ham_get(connection)
     spamzip = Dao_email.spam_get(connection)
 
-    hamlist = list(set([i for i in hamzip]))
-    spamlist = list(set([i for i in spamzip]))
+    hamlist = [i for i in hamzip]
+    spamlist = [i for i in spamzip]
 
-    resultham = []
-    resultspam = []
+    ham_arr = np.array(hamlist)
+    spam_arr = np.array(spamlist)
 
-    resultham.extend(hamlist)
-    resultspam.extend(spamlist)
+    train_set = []
+    test_set = []
 
-    train_set = random.sample(hamlist, int(len(hamlist) * per))
-    test_set = list(set(hamlist).difference(train_set))
+    ham_rand = np.random.rand(ham_arr.shape[0])
+    spam_rand = np.random.rand(spam_arr.shape[0])
 
-    train_set.extend(random.sample(spamlist, int(len(spamlist) * per)))
-    test_set.extend(set(spamlist).difference(train_set))
+    ham_split = ham_rand < np.percentile(ham_rand, per*100)
+    spam_split = spam_rand < np.percentile(spam_rand, per*100)
+
+
+    ham_train = ham_arr[ham_split]
+    spam_train = spam_arr[spam_split]
+    ham_test = ham_arr[~ham_split]
+    spam_test = spam_arr[~spam_split]
+
+    train_set.extend(ham_train.tolist())
+    train_set.extend(spam_train.tolist())
+
+    test_set.extend(ham_test.tolist())
+    test_set.extend(spam_test.tolist())
 
     return train_set, test_set

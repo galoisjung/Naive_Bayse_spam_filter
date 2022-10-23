@@ -61,7 +61,6 @@ class morphs:
             self.storedic = dict()
 
     def split(self, doc):
-        print(doc)
         doc = re.sub("(?:\s)+", " ", doc)
         emoji_pattern = re.compile("["
                                    u"\U0001F600-\U0001F64F"  # emoticons
@@ -89,17 +88,30 @@ class morphs:
 class noun:
     def __init__(self):
         self.ma = Komoran()
+        if os.path.isfile("noun.json"):
+            with open("noun.json", "r") as fp:
+                self.storedic = json.load(fp)
+        else:
+            self.storedic = dict()
 
     def split(self, doc):
-        print(doc)
+        hash_doc = hashing(doc)
         result = []
         for sentence in sent_tokenize(doc):
             sentence = sentence.strip()
+            print(sentence)
             if len(sentence) > 1:
                 try:
-                    result.extend(self.ma.nouns(sentence))
+                    if hash_doc in self.storedic:
+                        result = self.storedic[hash_doc]
+                    else:
+                        with open("noun.json", "w") as f:
+                            result = self.ma.nouns(sentence)
+                            self.storedic[hash_doc] = result
+                            json.dump(self.storedic, f)
                 except UnicodeDecodeError:
-                    result.extend("")
+                    print("error")
+                    result = []
         return result
 
 
@@ -132,7 +144,7 @@ def training(C, D, method):
 
         prior[i] = Nc / N
 
-        Tc = '\n'.join([str(d[0]) for d in Dc])
+        Tc = '\n'.join([d for d in Dc])
 
         Tct = dict()
         CondProb = dict()
@@ -167,7 +179,7 @@ def testing(C, V, Prior, CondProb, d, method):
 def making_list_value(b):
     result = list()
     for i in b:
-        result.append(i[0][0])
+        result.append(i[0])
 
     return result
 
@@ -183,9 +195,9 @@ def testing_all(q, w, e, b, method):
         if len(j.split()) != 0:
             output = testing(["True", "False"], q, w, e, j, instance)
             if output[0] > output[1]:
-                result.append(True)
+                result.append("True")
             else:
-                result.append(False)
+                result.append("False")
 
     return result, target
 
@@ -198,9 +210,9 @@ def compare_result(predict, acutal):
     for i in range(len(predict)):
         if predict[i] == acutal[i]:
             true_count += 1
-        elif predict[i] and not acutal[i]:
+        elif predict[i] == "True" and acutal[i] == "False":
             false_positive += 1
-        elif not predict[i] and acutal[i]:
+        elif predict[i] == "False" and acutal[i] == "True":
             false_negative += 1
 
         count += 1
