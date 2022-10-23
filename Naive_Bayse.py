@@ -44,12 +44,11 @@ class bigram_sound:
 
 
 class morphs:
-
     def __init__(self):
         self.ma = Komoran()
 
     def split(self, doc):
-        doc.strip()
+        print(doc)
         doc = re.sub("(?:\s)+", " ", doc)
         emoji_pattern = re.compile("["
                                    u"\U0001F600-\U0001F64F"  # emoticons
@@ -63,7 +62,8 @@ class morphs:
         try:
             result = self.ma.morphs(doc)
         except UnicodeDecodeError:
-            result = " "
+            print("error")
+            result = []
         return result
 
 
@@ -72,6 +72,7 @@ class noun:
         self.ma = Komoran()
 
     def split(self, doc):
+        print(doc)
         result = []
         for sentence in sent_tokenize(doc):
             sentence = sentence.strip()
@@ -84,7 +85,7 @@ class noun:
 
 
 def word_extraction(doc, method):
-    words = method.split(doc)
+    words = method().split(doc)
     return words
 
 
@@ -94,10 +95,10 @@ def format_maker(mail, label):
 
 def training(C, D, method):
     V = list()
-    for row in D:
-        if len(row[0][0].split()) != 0:
-            for term in method.split(row[0][0]):
-                V.append(term)
+    li = making_list_value(D)
+    for row in li:
+        for term in method().split(row):
+            V.append(term)
     V = list(set(V))
     N = len(D)
 
@@ -106,7 +107,7 @@ def training(C, D, method):
     globalcondprob = list()
 
     for i, c in enumerate(C):
-        Dc = [d for d in D if d[-1] == c]
+        Dc = [d[0] for d in D if d[-1] == c]
         Nc = len(Dc)
 
         prior[i] = Nc / N
@@ -117,7 +118,7 @@ def training(C, D, method):
         CondProb = dict()
 
         for t in V:
-            Tct[t] = len([w for w in method.split(Tc) if w == t])
+            Tct[t] = len([w for w in method().split(Tc) if w == t])
         for t in V:
             CondProb[t] = (Tct.get(t, 0) + 1) / (sum(Tct.values()) + len(Tct))
 
@@ -128,11 +129,10 @@ def training(C, D, method):
 
 def testing(C, V, Prior, CondProb, d, method):
     W = list()
-    for t in method.split(d):
+    score = list([0] * len(C))
+    for t in method().split(d):
         if t in V:
             W.append(t)
-        score = list([0] * len(C))
-
         for i, _ in enumerate(C):
             score[i] = log(Prior[i])
             for k in W:
